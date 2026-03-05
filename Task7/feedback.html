@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Feedback Form - Task 7</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:system-ui,Arial,sans-serif;
+  background:#f3f4f6;
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:20px;
+}
+.card{
+  background:#ffffff;
+  border-radius:14px;
+  padding:18px 20px;
+  box-shadow:0 10px 26px rgba(15,23,42,.16);
+  max-width:420px;
+  width:100%;
+}
+h2{font-size:22px;margin-bottom:4px;color:#111827;}
+p{font-size:13px;color:#6b7280;margin-bottom:14px;}
+.field{margin-bottom:12px;}
+label{display:block;font-size:13px;margin-bottom:4px;color:#374151;}
+input,textarea,select{
+  width:100%;
+  padding:8px 10px;
+  border-radius:8px;
+  border:1px solid #d1d5db;
+  font-size:13px;
+  outline:none;
+  transition:border-color .15s, box-shadow .15s, background-color .15s;
+}
+textarea{min-height:80px;resize:vertical;}
+input:hover,textarea:hover,select:hover{
+  border-color:#2563eb;
+  box-shadow:0 0 0 2px rgba(37,99,235,.18);
+  background:#f9fafb;
+}
+input.invalid,textarea.invalid{
+  border-color:#dc2626;
+  box-shadow:0 0 0 2px rgba(220,38,38,.18);
+}
+.error{
+  font-size:11px;
+  color:#dc2626;
+  margin-top:3px;
+}
+button{
+  width:100%;
+  padding:9px 0;
+  border:none;
+  border-radius:999px;
+  background:#2563eb;
+  color:#fff;
+  font-size:14px;
+  font-weight:500;
+  cursor:pointer;
+  margin-top:6px;
+}
+button:hover{background:#1d4ed8;}
+.note{
+  font-size:11px;
+  color:#6b7280;
+  margin-top:8px;
+  text-align:center;
+}
+</style>
+</head>
+<body>
+<div class="card">
+  <h2>Feedback Form</h2>
+  <p>Please share your feedback about our service.</p>
+
+  <form id="feedbackForm">
+    <div class="field">
+      <label for="name">Name</label>
+      <input id="name" name="name" type="text">
+      <div id="nameErr" class="error"></div>
+    </div>
+
+    <div class="field">
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email">
+      <div id="emailErr" class="error"></div>
+    </div>
+
+    <div class="field">
+      <label for="rating">Rating</label>
+      <select id="rating" name="rating">
+        <option value="">Select rating</option>
+        <option value="5">Excellent</option>
+        <option value="4">Good</option>
+        <option value="3">Average</option>
+        <option value="2">Poor</option>
+        <option value="1">Very Poor</option>
+      </select>
+      <div id="ratingErr" class="error"></div>
+    </div>
+
+    <div class="field">
+      <label for="message">Message</label>
+      <textarea id="message" name="message"></textarea>
+      <div id="messageErr" class="error"></div>
+    </div>
+
+    <!-- Double-click submit: first click validates, second click confirms -->
+    <button type="button" id="submitBtn">Double-click to submit</button>
+
+    <div class="note">
+      Validates as you type, highlights on hover, and asks confirmation on double-click.
+    </div>
+  </form>
+</div>
+
+<script>
+// reusable validation helpers
+function setError(input, errorEl, msg){
+  if(msg){
+    input.classList.add('invalid');
+    errorEl.textContent = msg;
+  }else{
+    input.classList.remove('invalid');
+    errorEl.textContent = "";
+  }
+}
+function validateNotEmpty(input, errorEl, label){
+  if(!input.value.trim()){
+    setError(input, errorEl, label + " is required");
+    return false;
+  }
+  setError(input, errorEl, "");
+  return true;
+}
+function validateEmail(input, errorEl){
+  const value = input.value.trim();
+  if(!value){
+    setError(input, errorEl, "Email is required");
+    return false;
+  }
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if(!re.test(value)){
+    setError(input, errorEl, "Enter a valid email");
+    return false;
+  }
+  setError(input, errorEl, "");
+  return true;
+}
+
+// attach events when DOM is ready
+const nameInput    = document.getElementById('name');
+const emailInput   = document.getElementById('email');
+const ratingSelect = document.getElementById('rating');
+const msgInput     = document.getElementById('message');
+const nameErr      = document.getElementById('nameErr');
+const emailErr     = document.getElementById('emailErr');
+const ratingErr    = document.getElementById('ratingErr');
+const msgErr       = document.getElementById('messageErr');
+const submitBtn    = document.getElementById('submitBtn');
+const form         = document.getElementById('feedbackForm');
+
+// keypress validation: basic checks while typing
+nameInput.addEventListener('keypress', () => {
+  if(nameInput.value.length >= 2){
+    setError(nameInput, nameErr, "");
+  }
+});
+emailInput.addEventListener('keypress', () => {
+  if(emailInput.value.length > 3){
+    emailErr.textContent = ""; // keep simple live behaviour
+    emailInput.classList.remove('invalid');
+  }
+});
+msgInput.addEventListener('keypress', () => {
+  if(msgInput.value.length >= 5){
+    setError(msgInput, msgErr, "");
+  }
+});
+
+// double-click to submit with confirmation
+submitBtn.addEventListener('dblclick', function () {
+  const okName   = validateNotEmpty(nameInput, nameErr, "Name");
+  const okEmail  = validateEmail(emailInput, emailErr);
+  const okRating = validateNotEmpty(ratingSelect, ratingErr, "Rating");
+  const okMsg    = validateNotEmpty(msgInput, msgErr, "Message");
+
+  if(!(okName && okEmail && okRating && okMsg)){
+    alert("Please fix the errors before submitting.");
+    return;
+  }
+
+  const confirmSend = confirm("Submit feedback now?");
+  if(confirmSend){
+    alert("Thank you! Your feedback has been submitted.");
+    form.reset();
+  }
+});
+</script>
+</body>
+</html>
